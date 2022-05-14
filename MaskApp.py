@@ -133,7 +133,26 @@ def main():
         image = Image.open("Mask.png")
         st.image(image)
 
-    elif choice == "Login":
+    if choice == "SignUp":
+        st.sidebar.subheader("Create New Account")
+        new_user = st.sidebar.text_input("Username")
+        new_password = st.sidebar.text_input("Password", type='password')
+
+        if st.sidebar.button("Signup"):
+            if new_user == "":
+                st.sidebar.error("Please insert username!")
+            elif new_password == "":
+                st.sidebar.error("Please insert password!")
+            else:
+                create_usertable()
+                try:
+                    add_userdata(new_user, new_password)
+                    st.sidebar.success("You have succesfully created a valid account!")
+                    st.sidebar.info("Go to Login Menu to login!")
+                except:
+                    st.sidebar.error("Username already exists! Insert a new one!")
+                    
+    if choice == "Login":
         st.sidebar.subheader("Login Section")
 
         username = st.sidebar.text_input("User Name")
@@ -158,25 +177,6 @@ def main():
                                ))   
             else:
                 st.sidebar.error("Incorrect Username/Password!")
-
-    elif choice == "SignUp":
-        st.sidebar.subheader("Create New Account")
-        new_user = st.sidebar.text_input("Username")
-        new_password = st.sidebar.text_input("Password", type='password')
-
-        if st.sidebar.button("Signup"):
-            if new_user == "":
-                st.sidebar.error("Please insert username!")
-            elif new_password == "":
-                st.sidebar.error("Please insert password!")
-            else:
-                create_usertable()
-                try:
-                    add_userdata(new_user, new_password)
-                    st.sidebar.success("You have succesfully created a valid account!")
-                    st.sidebar.info("Go to Login Menu to login!")
-                except:
-                    st.sidebar.error("Username already exists! Insert a new one!")
 
 
 if __name__ == "__main__":
