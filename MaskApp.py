@@ -130,7 +130,7 @@ def main():
     if choice == "Home":
         st.header("Mask Detection")
         st.subheader("This is an app which predicts in real time if a person is wearing or not a mask!")
-        image = Image.open(r"C:\Users\botsc\Desktop\Detectie_masca\Mask.png")
+        image = Image.open(".\Mask.png")
         st.image(image)
 
     elif choice == "Login":
@@ -148,7 +148,7 @@ def main():
             elif login_user(username, password):
                 st.sidebar.success("Logged In as {} !".format(username))
                 st.header("Mask Detection")
-                image = Image.open(r"C:\Users\botsc\Desktop\Detectie_masca\Mask.png")
+                image = Image.open(".\Mask.png")
                 st.image(image)
                 st.header("Webcam Live Feed")
                 st.write("Click on START to use webcam, detect faces and verify if people wear mask")
