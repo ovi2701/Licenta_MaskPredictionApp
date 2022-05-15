@@ -159,6 +159,7 @@ def main():
         password = st.sidebar.text_input("Password", type='password')
 
         if st.sidebar.checkbox("Login"):
+            
             create_usertable()
             if username == "":
                 st.sidebar.error("Please insert username!")
