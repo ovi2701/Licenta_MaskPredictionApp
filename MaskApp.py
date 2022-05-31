@@ -1,15 +1,8 @@
-from logging import PlaceHolder
-from multiprocessing.connection import wait
-from sqlalchemy import true
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
-from imutils.video import VideoStream
 import numpy as np
-import imutils
-import time
 import cv2
-import os
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration
 import av
@@ -17,10 +10,7 @@ from PIL import Image
 import sqlite3
 import streamlit as st
 from streamlit_option_menu import option_menu
-
-import gtts
 import pyttsx3
-from playsound import playsound
 
 
 # Create sound for the case when no mask is detected
