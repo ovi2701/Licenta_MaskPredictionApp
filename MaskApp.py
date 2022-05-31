@@ -1,3 +1,6 @@
+from logging import PlaceHolder
+from multiprocessing.connection import wait
+from sqlalchemy import true
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
@@ -12,6 +15,18 @@ from streamlit_webrtc import webrtc_streamer, RTCConfiguration
 import av
 from PIL import Image
 import sqlite3
+import streamlit as st
+from streamlit_option_menu import option_menu
+
+import gtts
+import pyttsx3
+from playsound import playsound
+
+
+# Create sound for the case when no mask is detected
+# tts = gtts.gTTS("Please put mask on!", lang="en")
+# tts.save("PutMaskOn-EN.mp3")
+
 
 #Mask Detection
 
@@ -71,6 +86,8 @@ prototxtPath = "face_detector/deploy.prototxt"
 weightsPath =  "face_detector/res10_300x300_ssd_iter_140000.caffemodel"
 faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
 
+# faceNet = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+
 # load the face mask detector model from disk
 print("[INFO] loading face mask detector model...")
 maskNet = load_model("MaskDetector.h5")
@@ -88,18 +105,22 @@ class VideoProcessor:
             (mask, withoutMask) = pred
             # determine the class label and color we'll use to draw
             # the bounding box and text
-            
+            engine = pyttsx3.init()
+            engine.setProperty('rate', 100)
             if mask > withoutMask:
-                label = "Mask Detected!"
+                label = "Mask Detected! " + str(int(pred[0]*100)) + "%"
                 color = (0, 255, 0)
             else:
-                label = "No Mask Detected!"
+                engine.say("Please put the mask on!")
+                label = "No Mask Detected! " + str(int(pred[1]*100)) + "%"
                 color = (0, 0, 255)
+                engine.runAndWait()
             # display the label and bounding box rectangle on the output
             # frame
             cv2.putText(frm, label, (startX-20, startY - 5),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
             cv2.rectangle(frm, (startX, startY), (endX, endY), color, 2)
+
         return av.VideoFrame.from_ndarray(frm, format = 'bgr24')
     
 #DB management
@@ -121,63 +142,94 @@ def login_user(username, password):
     data = c.fetchall()
     return data    
 
+
 def main():
-    st.sidebar.title("Prediction Mask App")
-    menu = ["Home", "Login", "SignUp"]
+    # st.sidebar.title("Prediction Mask App")
+    # menu = ["Home", "Login", "SignUp"]
 
-    choice = st.sidebar.selectbox("Menu", menu)
+    # choice = st.sidebar.selectbox("Menu", menu)
 
-    if choice == "Home":
-        st.header("Mask Detection")
-        st.subheader("This is an app which predicts in real time if a person is wearing or not a mask!")
+    with st.sidebar:
+        selected = option_menu("Main Menu", ["Mask Detection", "Login", "SignUp"], 
+            icons=['house'], menu_icon="cast", default_index=0)
+    
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+             
+    if selected == "Login":
+        st.header("Login")
+        st.text("")
         image = Image.open("Mask.png")
         st.image(image)
 
-    if choice == "SignUp":
-        st.sidebar.subheader("Create New Account")
-        new_user = st.sidebar.text_input("Username")
-        new_password = st.sidebar.text_input("Password", type='password')
+        st.subheader("Login Section")
 
-        if st.sidebar.button("Signup"):
-            if new_user == "":
-                st.sidebar.error("Please insert username!")
-            elif new_password == "":
-                st.sidebar.error("Please insert password!")
-            else:
-                create_usertable()
-                try:
-                    add_userdata(new_user, new_password)
-                    st.sidebar.success("You have succesfully created a valid account!")
-                    st.sidebar.info("Go to Login Menu to login!")
-                except:
-                    st.sidebar.error("Username already exists! Insert a new one!")
-                    
-    if choice == "Login":
-        st.sidebar.subheader("Login Section")
+        username = st.text_input("User Name")
+        password = st.text_input("Password", type='password')
 
-        username = st.sidebar.text_input("User Name")
-        password = st.sidebar.text_input("Password", type='password')
 
-        if st.sidebar.checkbox("Login"):
-            
+        if st.button("Login"):
             create_usertable()
             if username == "":
-                st.sidebar.error("Please insert username!")
+                st.error("Please insert username!")
             elif password == "":
-                st.sidebar.error("Please insert password!")
+                st.error("Please insert password!")
             elif login_user(username, password):
-                st.sidebar.success("Logged In as {} !".format(username))
-                st.header("Mask Detection")
-                image = Image.open("Mask.png")
-                st.image(image)
-                st.header("Webcam Live Feed")
-                st.write("Click on START to use webcam, detect faces and verify if people wear mask")
-                webrtc_streamer(key="key", video_processor_factory=VideoProcessor,
-                               rtc_configuration=RTCConfiguration(
-                               {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-                               ))   
+                st.success("Logged In as {} !".format(username)) 
+                st.session_state.logged_in = True
             else:
-                st.sidebar.error("Incorrect Username/Password!")
+                st.error("Incorrect Username/Password!")
+    
+    if selected == "Mask Detection":
+        st.header("Mask Detection")
+        st.subheader("This is an app which predicts in real time if a person is wearing or not a mask!")
+        st.text("")
+        st.write("Please go to Login section and log in first, to be able to use this app!")
+        st.text("")
+        image = Image.open("Mask.png")
+        st.image(image)
+        if  st.session_state.logged_in == True:
+            st.header("Webcam Live Feed")
+            st.write("Click on START to use webcam, detect faces and verify if people wear mask")
+            webrtc_streamer(key="key", video_processor_factory=VideoProcessor,
+                        rtc_configuration=RTCConfiguration(
+                        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+                        )) 
+    if selected == "SignUp":
+        admin_username = st.sidebar.text_input("Admin username")
+        admin_password = st.sidebar.text_input("Admin password", type= 'password')
+        adminBtn = st.sidebar.button("Login Admin")
+        st.header("Register")
+        st.subheader("Create account for new user!")
+        st.text("")
+        image = Image.open("Mask.png")
+        st.image(image)
+        if admin_username == "admin" and admin_password == "admin" and adminBtn:
+            st.sidebar.success("Logged in succesfully!")
+            st.sidebar.info("Create new user account!")
+            st.subheader("Create New Account")
+            new_user = st.text_input("Username")
+            new_password = st.text_input("Password", type='password')
+            if st.button("Create account"):
+                if new_user == "":
+                    st.error("Please insert username!")
+                elif new_password == "":
+                    st.error("Please insert password!")
+                else:
+                    create_usertable()
+                    try:
+                        add_userdata(new_user, new_password)
+                        st.success("You have succesfully created a valid account!")
+                        st.info("Go to Login Menu to login!")
+                    except:
+                        st.error("Username already exists! Insert a new one!")
+        elif admin_username != "admin" and adminBtn:
+            st.sidebar.error("Wrong or empty username!")
+            st.sidebar.warning("Enter username again!")
+        elif admin_password != "admin" and adminBtn:
+            st.sidebar.error("Wrong or empty password!")
+            st.sidebar.warning("Enter password again!")
 
 
 if __name__ == "__main__":
