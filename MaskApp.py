@@ -95,16 +95,16 @@ class VideoProcessor:
             (mask, withoutMask) = pred
             # determine the class label and color we'll use to draw
             # the bounding box and text
-            engine = pyttsx3.init()
-            engine.setProperty('rate', 100)
+            # engine = pyttsx3.init()
+            # engine.setProperty('rate', 100)
             if mask > withoutMask:
                 label = "Mask Detected! " + str(int(pred[0]*100)) + "%"
                 color = (0, 255, 0)
             else:
-                engine.say("Please put the mask on!")
+                # engine.say("Please put the mask on!")
                 label = "No Mask Detected! " + str(int(pred[1]*100)) + "%"
                 color = (0, 0, 255)
-                engine.runAndWait()
+                # engine.runAndWait()
             # display the label and bounding box rectangle on the output
             # frame
             cv2.putText(frm, label, (startX-20, startY - 5),
