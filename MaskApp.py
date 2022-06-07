@@ -14,11 +14,9 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import pyttsx3
 
-
 # Create sound for the case when no mask is detected
 # tts = gtts.gTTS("Please put mask on!", lang="en")
 # tts.save("PutMaskOn-EN.mp3")
-
 
 #Mask Detection
 
@@ -112,7 +110,6 @@ class VideoProcessor:
             cv2.putText(frm, label, (startX-20, startY - 5),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
             cv2.rectangle(frm, (startX, startY), (endX, endY), color, 2)
-
         return av.VideoFrame.from_ndarray(frm, format = 'bgr24')
     
 #DB management
@@ -160,7 +157,6 @@ def main():
         username = st.text_input("User Name")
         password = st.text_input("Password", type='password')
 
-
         if st.button("Login"):
             create_usertable()
             if username == "":
@@ -170,6 +166,7 @@ def main():
             elif login_user(username, password):
                 st.success("Logged In as {} !".format(username)) 
                 st.session_state.logged_in = True
+                st.warning("Please return to the Mask detection page to use this app")
             else:
                 st.error("Incorrect Username/Password!")
     
@@ -188,6 +185,7 @@ def main():
                         rtc_configuration=RTCConfiguration(
                         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
                         )) 
+
     if selected == "SignUp":
         admin_username = st.sidebar.text_input("Admin username")
         admin_password = st.sidebar.text_input("Admin password", type= 'password')
