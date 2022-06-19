@@ -157,7 +157,15 @@ def main():
         username = st.text_input("User Name")
         password = st.text_input("Password", type='password')
 
-        if st.button("Login"):
+        col1, col2 = st.columns([.1, 1])
+
+        with col1:
+            loginBtn = st.button("Login")
+
+        with col2:
+            logoutBtn = st.button("Logout")
+
+        if loginBtn:
             create_usertable()
             if username == "":
                 st.error("Please insert username!")
@@ -169,7 +177,11 @@ def main():
                 st.warning("Please return to the Mask detection page to use this app")
             else:
                 st.error("Incorrect Username/Password!")
-    
+
+        if logoutBtn and st.session_state.logged_in == True:
+            st.session_state.logged_in = False
+            st.warning("Logged out successfully! Please log in again if you want to use the app!")
+
     if selected == "Mask Detection":
         st.header("Mask Detection")
         st.subheader("This is an app which predicts in real time if a person is wearing or not a mask!")
@@ -189,7 +201,7 @@ def main():
     if selected == "SignUp":
         admin_username = st.sidebar.text_input("Admin username")
         admin_password = st.sidebar.text_input("Admin password", type= 'password')
-        adminBtn = st.sidebar.button("Login Admin")
+        adminBtn = st.sidebar.checkbox("Login Admin")
         st.header("Register")
         st.subheader("Create account for new user!")
         st.text("")
